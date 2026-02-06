@@ -52,7 +52,13 @@ import {
 } from "./controllers/skills.ts";
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
 import { icons } from "./icons.ts";
-import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import {
+  normalizeBasePath,
+  TAB_GROUPS,
+  USER_TAB_GROUPS,
+  subtitleForTab,
+  titleForTab,
+} from "./navigation.ts";
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
 let usageDateDebounceTimeout: number | null = null;
@@ -148,11 +154,23 @@ export function renderApp(state: AppViewState) {
             <span>Health</span>
             <span class="mono">${state.connected ? "OK" : "Offline"}</span>
           </div>
+          <button
+            class="pill ${state.settings.userMode ? "" : "pill--active"}"
+            @click=${() => {
+              state.applySettings({
+                ...state.settings,
+                userMode: !state.settings.userMode,
+              });
+            }}
+            title=${state.settings.userMode ? "Switch to admin mode" : "Switch to user mode"}
+          >
+            <span>${state.settings.userMode ? "User" : "Admin"}</span>
+          </button>
           ${renderThemeToggle(state)}
         </div>
       </header>
       <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
-        ${TAB_GROUPS.map((group) => {
+        ${(state.settings.userMode ? USER_TAB_GROUPS : TAB_GROUPS).map((group) => {
           const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
           const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
           return html`
@@ -178,6 +196,10 @@ export function renderApp(state: AppViewState) {
             </div>
           `;
         })}
+        ${
+          state.settings.userMode
+            ? nothing
+            : html`
         <div class="nav-group nav-group--links">
           <div class="nav-label nav-label--static">
             <span class="nav-label__text">Resources</span>
@@ -195,6 +217,8 @@ export function renderApp(state: AppViewState) {
             </a>
           </div>
         </div>
+        `
+        }
       </aside>
       <main class="content ${isChat ? "content--chat" : ""}">
         <section class="content-header">

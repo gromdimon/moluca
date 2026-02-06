@@ -1,0 +1,91 @@
+{
+  // Moluca — Personal AI Secretary
+  // Copy this file to ~/.openclaw/openclaw.json and fill in your credentials.
+
+  // Agent identity
+  identity: {
+    name: "Luca",
+    theme: "personal AI secretary",
+    emoji: "🦞",
+  },
+
+  // UI customization
+  ui: {
+    assistant: {
+      name: "Luca",
+      avatar: "🦞",
+    },
+  },
+
+  // Environment — set your API keys here or via env vars
+  env: {
+    shellEnv: { enabled: true },
+  },
+
+  // Agent runtime
+  agents: {
+    defaults: {
+      workspace: "~/.openclaw/workspace",
+      model: {
+        primary: "openai/gpt-4o",
+        fallbacks: ["openai/gpt-4o-mini"],
+      },
+      thinkingDefault: "low",
+      maxConcurrent: 2,
+      memorySearch: {
+        provider: "openai",
+        model: "text-embedding-3-small",
+      },
+      humanDelay: {
+        mode: "natural",
+      },
+    },
+    list: [
+      {
+        id: "main",
+        default: true,
+        identity: {
+          name: "Luca",
+          theme: "personal AI secretary",
+          emoji: "🦞",
+        },
+      },
+    ],
+  },
+
+  // Session behavior
+  session: {
+    scope: "per-sender",
+    reset: {
+      mode: "idle",
+      idleMinutes: 120,
+    },
+  },
+
+  // Channels
+  channels: {
+    whatsapp: {
+      dmPolicy: "allow",
+      allowFrom: [], // Add phone numbers: ["+491234567890"]
+    },
+    // telegram-user channel will be configured once the plugin is built
+  },
+
+  // Cron jobs
+  cron: {
+    enabled: true,
+  },
+
+  // Gateway
+  gateway: {
+    mode: "local",
+    port: 18789,
+    controlUi: { enabled: true },
+  },
+
+  // Messages
+  messages: {
+    ackReaction: "👀",
+    ackReactionScope: "group-mentions",
+  },
+}

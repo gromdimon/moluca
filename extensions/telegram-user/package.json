@@ -1,0 +1,36 @@
+{
+  "name": "@openclaw/telegram-user",
+  "version": "2026.2.4",
+  "description": "OpenClaw Telegram user-account channel plugin (MTProto via GramJS)",
+  "type": "module",
+  "dependencies": {
+    "input": "^1.0.0",
+    "telegram": "^2.26.0"
+  },
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "telegram-user",
+      "label": "Telegram Personal",
+      "selectionLabel": "Telegram (Personal Account)",
+      "docsPath": "/channels/telegram-user",
+      "docsLabel": "telegram-user",
+      "blurb": "Telegram personal account via MTProto (GramJS).",
+      "aliases": [
+        "tgu"
+      ],
+      "order": 82,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@openclaw/telegram-user",
+      "localPath": "extensions/telegram-user",
+      "defaultChoice": "npm"
+    }
+  }
+}
