@@ -11,6 +11,7 @@ import { cronHandlers } from "./server-methods/cron.js";
 import { deviceHandlers } from "./server-methods/devices.js";
 import { execApprovalsHandlers } from "./server-methods/exec-approvals.js";
 import { healthHandlers } from "./server-methods/health.js";
+import { inboxHandlers } from "./server-methods/inbox.js";
 import { logsHandlers } from "./server-methods/logs.js";
 import { modelsHandlers } from "./server-methods/models.js";
 import { nodeHandlers } from "./server-methods/nodes.js";
@@ -62,6 +63,7 @@ const READ_METHODS = new Set([
   "agent.identity.get",
   "skills.status",
   "voicewake.get",
+  "inbox.list",
   "sessions.list",
   "sessions.preview",
   "cron.list",
@@ -85,6 +87,7 @@ const WRITE_METHODS = new Set([
   "tts.setProvider",
   "voicewake.set",
   "node.invoke",
+  "inbox.add",
   "chat.send",
   "chat.abort",
   "browser.request",
@@ -152,7 +155,9 @@ function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["c
     method === "sessions.patch" ||
     method === "sessions.reset" ||
     method === "sessions.delete" ||
-    method === "sessions.compact"
+    method === "sessions.compact" ||
+    method === "inbox.markRead" ||
+    method === "inbox.dismiss"
   ) {
     return errorShape(ErrorCodes.INVALID_REQUEST, "missing scope: operator.admin");
   }
@@ -164,6 +169,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...logsHandlers,
   ...voicewakeHandlers,
   ...healthHandlers,
+  ...inboxHandlers,
   ...channelsHandlers,
   ...chatHandlers,
   ...cronHandlers,

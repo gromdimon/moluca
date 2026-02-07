@@ -33,6 +33,7 @@ const GATEWAY_ACTIONS = [
   "config.schema",
   "config.apply",
   "config.patch",
+  "channels.status",
   "update.run",
 ] as const;
 
@@ -69,7 +70,7 @@ export function createGatewayTool(opts?: {
     label: "Gateway",
     name: "gateway",
     description:
-      "Restart, apply config, or update the gateway in-place (SIGUSR1). Use config.patch for safe partial config updates (merges with existing). Use config.apply only when replacing entire config. Both trigger restart after writing.",
+      "Restart, apply config, check channel status, or update the gateway in-place (SIGUSR1). Use channels.status to check which messaging channels are running/connected. Use config.patch for safe partial config updates (merges with existing). Use config.apply only when replacing entire config. Both trigger restart after writing.",
     parameters: GatewayToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
@@ -221,6 +222,13 @@ export function createGatewayTool(opts?: {
           sessionKey,
           note,
           restartDelayMs,
+        });
+        return jsonResult({ ok: true, result });
+      }
+      if (action === "channels.status") {
+        const result = await callGatewayTool("channels.status", gatewayOpts, {
+          probe: false,
+          timeoutMs: timeoutMs ?? 8000,
         });
         return jsonResult({ ok: true, result });
       }

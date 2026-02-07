@@ -10,12 +10,6 @@ export const TAB_GROUPS = [
   { label: "Settings", tabs: ["config", "debug", "logs"] },
 ] as const;
 
-/** Simplified tab groups for user mode — chat + minimal settings only. */
-export const USER_TAB_GROUPS = [
-  { label: "Chat", tabs: ["chat"] },
-  { label: "Settings", tabs: ["config"] },
-] as const;
-
 export type Tab =
   | "agents"
   | "overview"

@@ -87,6 +87,12 @@ import {
   TickEventSchema,
 } from "./frames.js";
 import {
+  InboxAddParamsSchema,
+  InboxDismissParamsSchema,
+  InboxListParamsSchema,
+  InboxMarkReadParamsSchema,
+} from "./inbox.js";
+import {
   ChatAbortParamsSchema,
   ChatEventSchema,
   ChatHistoryParamsSchema,
@@ -162,6 +168,10 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   NodeInvokeResultParams: NodeInvokeResultParamsSchema,
   NodeEventParams: NodeEventParamsSchema,
   NodeInvokeRequestEvent: NodeInvokeRequestEventSchema,
+  InboxAddParams: InboxAddParamsSchema,
+  InboxListParams: InboxListParamsSchema,
+  InboxMarkReadParams: InboxMarkReadParamsSchema,
+  InboxDismissParams: InboxDismissParamsSchema,
   SessionsListParams: SessionsListParamsSchema,
   SessionsPreviewParams: SessionsPreviewParamsSchema,
   SessionsResolveParams: SessionsResolveParamsSchema,

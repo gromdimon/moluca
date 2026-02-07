@@ -61,10 +61,17 @@ export function normalizeMessageChannel(raw?: string | null): string | undefined
     return INTERNAL_MESSAGE_CHANNEL;
   }
   const builtIn = normalizeChatChannelId(normalized);
-  if (builtIn) {
-    return builtIn;
-  }
   const registry = getActivePluginRegistry();
+
+  // When a plugin claims a built-in channel name as an alias, prefer the plugin.
+  // This lets "telegram" (obsolete Bot API) resolve to "telegram-user" (MTProto).
+  if (builtIn) {
+    const pluginOverride = registry?.channels.find((entry) =>
+      (entry.plugin.meta.aliases ?? []).some((alias) => alias.trim().toLowerCase() === builtIn),
+    );
+    return pluginOverride?.plugin.id ?? builtIn;
+  }
+
   const pluginMatch = registry?.channels.find((entry) => {
     if (entry.plugin.id.toLowerCase() === normalized) {
       return true;

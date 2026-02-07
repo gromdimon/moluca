@@ -1,5 +1,8 @@
 import type { GatewayRequestHandlers } from "./types.js";
 import { listChannelPlugins } from "../../channels/plugins/index.js";
+import { loadConfig } from "../../config/config.js";
+import { resolveWhatsAppAccount } from "../../web/accounts.js";
+import { webAuthExists } from "../../web/auth-store.js";
 import {
   ErrorCodes,
   errorShape,
@@ -113,6 +116,21 @@ export const webHandlers: GatewayRequestHandlers = {
             : undefined,
         accountId,
       });
+      // 515 is normal Baileys post-pairing behavior. If creds were saved, pairing succeeded.
+      if (!result.connected && result.message?.includes("515")) {
+        const cfg = loadConfig();
+        const account = resolveWhatsAppAccount({ cfg, accountId });
+        const hasAuth = await webAuthExists(account.authDir);
+        if (hasAuth) {
+          await context.startChannel(provider.id, accountId);
+          respond(
+            true,
+            { connected: true, message: "WhatsApp is linked. Reconnecting..." },
+            undefined,
+          );
+          return;
+        }
+      }
       if (result.connected) {
         await context.startChannel(provider.id, accountId);
       }

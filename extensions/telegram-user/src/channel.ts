@@ -3,6 +3,7 @@ import type {
   ChannelDirectoryEntry,
   ChannelDock,
   ChannelGroupContext,
+  ChannelMessageActionName,
   ChannelPlugin,
   OpenClawConfig,
   GroupToolPolicyConfig,
@@ -13,8 +14,11 @@ import {
   DEFAULT_ACCOUNT_ID,
   deleteAccountFromConfigSection,
   formatPairingApproveHint,
+  jsonResult,
   migrateBaseNameToDefaultAccount,
   normalizeAccountId,
+  readNumberParam,
+  readStringParam,
   setAccountEnabledInConfigSection,
 } from "openclaw/plugin-sdk";
 import type { ResolvedTelegramUserAccount, TelegramUserConfig } from "./types.js";
@@ -23,6 +27,7 @@ import {
   resolveDefaultTelegramUserAccountId,
   resolveTelegramUserAccount,
 } from "./accounts.js";
+import { getActiveTelegramUserClient } from "./active-client.js";
 import { GramJSClient } from "./client.js";
 import { TelegramUserConfigSchema } from "./config-schema.js";
 
@@ -33,7 +38,7 @@ const meta = {
   docsPath: "/channels/telegram-user",
   docsLabel: "telegram-user",
   blurb: "Telegram personal account via MTProto (GramJS).",
-  aliases: ["tgu"],
+  aliases: ["tgu", "telegram"],
   order: 82,
   quickstartAllowFrom: true,
 };
@@ -136,6 +141,7 @@ export const telegramUserPlugin: ChannelPlugin<ResolvedTelegramUserAccount> = {
       name: account.name,
       enabled: account.enabled,
       configured: Boolean(account.apiId && account.apiHash && account.sessionString),
+      linked: Boolean(account.sessionString),
     }),
     resolveAllowFrom: ({ cfg, accountId }) =>
       (resolveTelegramUserAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry) =>
@@ -173,6 +179,36 @@ export const telegramUserPlugin: ChannelPlugin<ResolvedTelegramUserAccount> = {
   },
   threading: {
     resolveReplyToMode: () => "off",
+  },
+  actions: {
+    listActions: ({ cfg }) => {
+      const accounts = listTelegramUserAccountIds(cfg);
+      if (accounts.length === 0) {
+        return [];
+      }
+      // Only expose "read" if at least one account is configured.
+      const hasConfigured = accounts.some((id) => {
+        const account = resolveTelegramUserAccount({ cfg, accountId: id });
+        return Boolean(account.apiId && account.apiHash && account.sessionString);
+      });
+      if (!hasConfigured) {
+        return [];
+      }
+      return ["read"] as ChannelMessageActionName[];
+    },
+    supportsAction: ({ action }) => action === "read",
+    handleAction: async ({ action, params, accountId }) => {
+      const client = getActiveTelegramUserClient(accountId);
+      if (!client) {
+        throw new Error(
+          "Telegram-user not connected. Start the gateway with telegram-user enabled.",
+        );
+      }
+      const target = readStringParam(params, "target", { required: true });
+      const limit = readNumberParam(params, "limit") ?? 20;
+      const messages = await client.getMessages(target, { limit });
+      return jsonResult({ ok: true, messages });
+    },
   },
   pairing: {
     idLabel: "telegramUserId",
@@ -468,6 +504,8 @@ export const telegramUserPlugin: ChannelPlugin<ResolvedTelegramUserAccount> = {
     },
     buildChannelSummary: ({ snapshot }) => ({
       configured: snapshot.configured ?? false,
+      linked: snapshot.linked ?? false,
+      connected: snapshot.connected ?? false,
       running: snapshot.running ?? false,
       lastStartAt: snapshot.lastStartAt ?? null,
       lastStopAt: snapshot.lastStopAt ?? null,
@@ -511,11 +549,14 @@ export const telegramUserPlugin: ChannelPlugin<ResolvedTelegramUserAccount> = {
     },
     buildAccountSnapshot: async ({ account, runtime }) => {
       const configured = Boolean(account.apiId && account.apiHash && account.sessionString);
+      const linked = Boolean(account.sessionString) || (runtime?.linked ?? false);
       return {
         accountId: account.accountId,
         name: account.name,
         enabled: account.enabled,
         configured,
+        linked,
+        connected: runtime?.connected ?? false,
         running: runtime?.running ?? false,
         lastStartAt: runtime?.lastStartAt ?? null,
         lastStopAt: runtime?.lastStopAt ?? null,

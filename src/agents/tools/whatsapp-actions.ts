@@ -1,7 +1,14 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { OpenClawConfig } from "../../config/config.js";
+import { requireActiveWebListener } from "../../web/active-listener.js";
 import { sendReactionWhatsApp } from "../../web/outbound.js";
-import { createActionGate, jsonResult, readReactionParams, readStringParam } from "./common.js";
+import {
+  createActionGate,
+  jsonResult,
+  readNumberParam,
+  readReactionParams,
+  readStringParam,
+} from "./common.js";
 
 export async function handleWhatsAppAction(
   params: Record<string, unknown>,
@@ -9,6 +16,18 @@ export async function handleWhatsAppAction(
 ): Promise<AgentToolResult<unknown>> {
   const action = readStringParam(params, "action", { required: true });
   const isActionEnabled = createActionGate(cfg.channels?.whatsapp?.actions);
+
+  if (action === "read" || action === "readMessages") {
+    const chatJid = readStringParam(params, "chatJid", { required: true });
+    const limit = readNumberParam(params, "limit") ?? 20;
+    const accountId = readStringParam(params, "accountId");
+    const { listener } = requireActiveWebListener(accountId);
+    if (!listener.readMessages) {
+      throw new Error("Message reading not available for this WhatsApp connection.");
+    }
+    const messages = await listener.readMessages(chatJid, limit);
+    return jsonResult({ ok: true, messages });
+  }
 
   if (action === "react") {
     if (!isActionEnabled("reactions")) {

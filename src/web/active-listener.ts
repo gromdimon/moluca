@@ -24,6 +24,18 @@ export type ActiveWebListener = {
     participant?: string,
   ) => Promise<void>;
   sendComposingTo: (to: string) => Promise<void>;
+  readMessages?: (
+    chatJid: string,
+    limit?: number,
+  ) => Promise<
+    Array<{
+      id?: string;
+      fromMe: boolean;
+      sender?: string;
+      body: string;
+      timestamp: number;
+    }>
+  >;
   close?: () => Promise<void>;
 };
 

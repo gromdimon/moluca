@@ -35,5 +35,6 @@ export function applyTargetToParams(params: {
     params.args.to = target;
     return;
   }
-  throw new Error(`Action ${params.action} does not accept a target.`);
+  // Leave target in params.args for channel plugins to read directly.
+  return;
 }

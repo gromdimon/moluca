@@ -2,13 +2,6 @@
   // Moluca — Personal AI Secretary
   // Copy this file to ~/.openclaw/openclaw.json and fill in your credentials.
 
-  // Agent identity
-  identity: {
-    name: "Luca",
-    theme: "personal AI secretary",
-    emoji: "🦞",
-  },
-
   // UI customization
   ui: {
     assistant: {
@@ -65,7 +58,7 @@
   // Channels
   channels: {
     whatsapp: {
-      dmPolicy: "allow",
+      dmPolicy: "open",
       allowFrom: [], // Add phone numbers: ["+491234567890"]
     },
     // telegram-user channel will be configured once the plugin is built

@@ -355,7 +355,10 @@ function buildMessageToolDescription(options?: {
 }): string {
   const baseDescription = "Send, delete, and manage messages via channel plugins.";
 
-  // If we have a current channel, show only its supported actions
+  // Collect all configured actions across channels
+  const allConfiguredActions = options?.config ? listChannelMessageActions(options.config) : [];
+
+  // If we have a current channel, show its supported actions + other channels' actions
   if (options?.currentChannel) {
     const channelActions = filterActionsForContext({
       actions: listChannelSupportedActions({
@@ -367,18 +370,20 @@ function buildMessageToolDescription(options?: {
     });
     if (channelActions.length > 0) {
       // Always include "send" as a base action
-      const allActions = new Set(["send", ...channelActions]);
-      const actionList = Array.from(allActions).toSorted().join(", ");
-      return `${baseDescription} Current channel (${options.currentChannel}) supports: ${actionList}.`;
+      const currentActions = new Set(["send", ...channelActions]);
+      const actionList = Array.from(currentActions).toSorted().join(", ");
+      const otherActions = allConfiguredActions.filter((a) => !currentActions.has(a));
+      let desc = `${baseDescription} Current channel (${options.currentChannel}) supports: ${actionList}.`;
+      if (otherActions.length > 0) {
+        desc += ` Other channels also support: ${otherActions.join(", ")} (specify channel explicitly).`;
+      }
+      return desc;
     }
   }
 
   // Fallback to generic description with all configured actions
-  if (options?.config) {
-    const actions = listChannelMessageActions(options.config);
-    if (actions.length > 0) {
-      return `${baseDescription} Supports actions: ${actions.join(", ")}.`;
-    }
+  if (allConfiguredActions.length > 0) {
+    return `${baseDescription} Supports actions: ${allConfiguredActions.join(", ")}.`;
   }
 
   return `${baseDescription} Supports actions: send, delete, react, poll, pin, threads, and more.`;

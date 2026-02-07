@@ -85,6 +85,14 @@ import {
   DeviceTokenRevokeParamsSchema,
   type DeviceTokenRotateParams,
   DeviceTokenRotateParamsSchema,
+  type InboxAddParams,
+  InboxAddParamsSchema,
+  type InboxDismissParams,
+  InboxDismissParamsSchema,
+  type InboxListParams,
+  InboxListParamsSchema,
+  type InboxMarkReadParams,
+  InboxMarkReadParamsSchema,
   type ExecApprovalsGetParams,
   ExecApprovalsGetParamsSchema,
   type ExecApprovalsNodeGetParams,
@@ -347,6 +355,11 @@ export const validateUpdateRunParams = ajv.compile<UpdateRunParams>(UpdateRunPar
 export const validateWebLoginStartParams =
   ajv.compile<WebLoginStartParams>(WebLoginStartParamsSchema);
 export const validateWebLoginWaitParams = ajv.compile<WebLoginWaitParams>(WebLoginWaitParamsSchema);
+export const validateInboxAddParams = ajv.compile<InboxAddParams>(InboxAddParamsSchema);
+export const validateInboxListParams = ajv.compile<InboxListParams>(InboxListParamsSchema);
+export const validateInboxMarkReadParams =
+  ajv.compile<InboxMarkReadParams>(InboxMarkReadParamsSchema);
+export const validateInboxDismissParams = ajv.compile<InboxDismissParams>(InboxDismissParamsSchema);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
   if (!errors?.length) {

@@ -151,11 +151,46 @@ export async function monitorWebInbox(options: {
     }
   };
 
+  // Per-chat message ring buffer for readMessages support
+  const MESSAGE_BUFFER_MAX = 50;
+  const messageBuffer = new Map<
+    string,
+    Array<{ id?: string; fromMe: boolean; sender?: string; body: string; timestamp: number }>
+  >();
+
+  const bufferMessage = (msg: WAMessage) => {
+    const remoteJid = msg.key?.remoteJid;
+    if (!remoteJid) {
+      return;
+    }
+    const text = extractText(msg.message ?? undefined);
+    if (!text) {
+      return;
+    }
+    const entry = {
+      id: msg.key?.id ?? undefined,
+      fromMe: Boolean(msg.key?.fromMe),
+      sender: msg.pushName ?? msg.key?.participant ?? undefined,
+      body: text,
+      timestamp: msg.messageTimestamp ? Number(msg.messageTimestamp) * 1000 : Date.now(),
+    };
+    let buf = messageBuffer.get(remoteJid);
+    if (!buf) {
+      buf = [];
+      messageBuffer.set(remoteJid, buf);
+    }
+    buf.push(entry);
+    if (buf.length > MESSAGE_BUFFER_MAX) {
+      buf.splice(0, buf.length - MESSAGE_BUFFER_MAX);
+    }
+  };
+
   const handleMessagesUpsert = async (upsert: { type?: string; messages?: Array<WAMessage> }) => {
     if (upsert.type !== "notify" && upsert.type !== "append") {
       return;
     }
     for (const msg of upsert.messages ?? []) {
+      bufferMessage(msg);
       recordChannelActivity({
         channel: "whatsapp",
         accountId: options.accountId,
@@ -396,6 +431,10 @@ export async function monitorWebInbox(options: {
     onClose,
     signalClose: (reason?: WebListenerCloseReason) => {
       resolveClose(reason ?? { status: undefined, isLoggedOut: false, error: "closed" });
+    },
+    readMessages: async (chatJid: string, limit = 20) => {
+      const buf = messageBuffer.get(chatJid) ?? [];
+      return buf.slice(-limit);
     },
     // IPC surface (sendMessage/sendPoll/sendReaction/sendComposingTo)
     ...sendApi,

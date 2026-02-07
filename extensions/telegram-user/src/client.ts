@@ -131,6 +131,35 @@ export class GramJSClient {
   }
 
   /**
+   * Fetch message history from a chat/user.
+   * @param target - username, phone number, or chat ID
+   * @param opts - optional limit and offsetId for pagination
+   */
+  async getMessages(
+    target: string,
+    opts?: { limit?: number; offsetId?: number },
+  ): Promise<Array<{ id: number; message: string; date: number; fromId?: string; out: boolean }>> {
+    const messages = await this.client.getMessages(target, {
+      limit: opts?.limit ?? 20,
+      offsetId: opts?.offsetId,
+    });
+    return messages.map((msg) => {
+      let fromId: string | undefined;
+      if (msg.fromId) {
+        const peer = msg.fromId as { userId?: bigint | number };
+        fromId = peer.userId != null ? String(peer.userId) : JSON.stringify(msg.fromId);
+      }
+      return {
+        id: msg.id,
+        message: msg.message ?? "",
+        date: msg.date ?? 0,
+        fromId,
+        out: Boolean(msg.out),
+      };
+    });
+  }
+
+  /**
    * Get the underlying TelegramClient (for advanced operations).
    */
   getUnderlyingClient(): TelegramClient {

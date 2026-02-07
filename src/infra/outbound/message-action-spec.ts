@@ -9,7 +9,7 @@ export const MESSAGE_ACTION_TARGET_MODE: Record<ChannelMessageActionName, Messag
     poll: "to",
     react: "to",
     reactions: "to",
-    read: "to",
+    read: "none",
     edit: "to",
     unsend: "to",
     reply: "to",

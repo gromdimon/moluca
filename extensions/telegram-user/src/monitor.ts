@@ -2,6 +2,7 @@ import type { OpenClawConfig, MarkdownTableMode, RuntimeEnv } from "openclaw/plu
 import type { NewMessageEvent } from "telegram/events";
 import { createReplyPrefixOptions } from "openclaw/plugin-sdk";
 import type { ResolvedTelegramUserAccount } from "./types.js";
+import { setActiveTelegramUserClient } from "./active-client.js";
 import { GramJSClient } from "./client.js";
 import { getTelegramUserRuntime } from "./runtime.js";
 
@@ -10,7 +11,12 @@ export type TelegramUserMonitorOptions = {
   config: OpenClawConfig;
   runtime: RuntimeEnv;
   abortSignal: AbortSignal;
-  statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
+  statusSink?: (patch: {
+    linked?: boolean;
+    connected?: boolean;
+    lastInboundAt?: number;
+    lastOutboundAt?: number;
+  }) => void;
 };
 
 export type TelegramUserMonitorResult = {
@@ -86,7 +92,7 @@ async function processMessage(
   core: TelegramUserCoreRuntime,
   runtime: RuntimeEnv,
   selfId: string | undefined,
-  statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void,
+  statusSink?: TelegramUserMonitorOptions["statusSink"],
 ): Promise<void> {
   const message = event.message;
   const text = message.text?.trim();
@@ -323,7 +329,7 @@ async function deliverTelegramUserReply(params: {
   runtime: RuntimeEnv;
   core: TelegramUserCoreRuntime;
   config: OpenClawConfig;
-  statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
+  statusSink?: TelegramUserMonitorOptions["statusSink"];
   tableMode?: MarkdownTableMode;
 }): Promise<void> {
   const { payload, account, chatId, runtime, core, config, statusSink } = params;
@@ -405,6 +411,7 @@ export async function monitorTelegramUserProvider(
       clearTimeout(restartTimer);
       restartTimer = null;
     }
+    setActiveTelegramUserClient(account.accountId, null);
     if (client) {
       client.disconnect().catch(() => {});
       client = null;
@@ -428,6 +435,8 @@ export async function monitorTelegramUserProvider(
       });
 
       await client.connect();
+      setActiveTelegramUserClient(account.accountId, client);
+      statusSink?.({ linked: true, connected: true });
 
       // Resolve self identity.
       try {

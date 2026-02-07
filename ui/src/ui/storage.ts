@@ -13,7 +13,6 @@ export type UiSettings = {
   splitRatio: number; // Sidebar split ratio (0.4 to 0.7, default 0.6)
   navCollapsed: boolean; // Collapsible sidebar state
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
-  userMode: boolean; // User mode: show only Chat + minimal Settings
 };
 
 export function loadSettings(): UiSettings {
@@ -33,7 +32,6 @@ export function loadSettings(): UiSettings {
     splitRatio: 0.6,
     navCollapsed: false,
     navGroupsCollapsed: {},
-    userMode: false,
   };
 
   try {
@@ -79,7 +77,6 @@ export function loadSettings(): UiSettings {
         typeof parsed.navGroupsCollapsed === "object" && parsed.navGroupsCollapsed !== null
           ? parsed.navGroupsCollapsed
           : defaults.navGroupsCollapsed,
-      userMode: typeof parsed.userMode === "boolean" ? parsed.userMode : defaults.userMode,
     };
   } catch {
     return defaults;

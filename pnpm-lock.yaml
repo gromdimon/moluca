@@ -245,6 +245,24 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.1)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
+  apps/web:
+    dependencies:
+      '@noble/ed25519':
+        specifier: 3.0.0
+        version: 3.0.0
+      dompurify:
+        specifier: ^3.3.1
+        version: 3.3.1
+      lit:
+        specifier: ^3.3.2
+        version: 3.3.2
+      marked:
+        specifier: ^17.0.1
+        version: 17.0.1
+      vite:
+        specifier: 7.3.1
+        version: 7.3.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
   extensions/bluebubbles:
     devDependencies:
       openclaw:

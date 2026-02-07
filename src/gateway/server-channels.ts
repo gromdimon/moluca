@@ -277,10 +277,10 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
         const enabled = plugin.config.isEnabled
           ? plugin.config.isEnabled(account, cfg)
           : isAccountEnabled(account);
-        const described = plugin.config.describeAccount?.(account, cfg);
+        const described = plugin.config.describeAccount?.(account, cfg) ?? {};
         const configured = described?.configured;
         const current = store.runtimes.get(id) ?? cloneDefaultRuntime(plugin.id, id);
-        const next = { ...current, accountId: id };
+        const next = { ...described, ...current, accountId: id };
         if (!next.running) {
           if (!enabled) {
             next.lastError ??= plugin.config.disabledReason?.(account, cfg) ?? "disabled";

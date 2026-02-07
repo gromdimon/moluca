@@ -256,10 +256,24 @@ export const whatsappPlugin: ChannelPlugin<ResolvedWhatsAppAccount> = {
       if (gate("polls")) {
         actions.add("poll");
       }
+      actions.add("read");
       return Array.from(actions);
     },
-    supportsAction: ({ action }) => action === "react",
+    supportsAction: ({ action }) => action === "react" || action === "read",
     handleAction: async ({ action, params, cfg, accountId }) => {
+      if (action === "read") {
+        return await getWhatsAppRuntime().channel.whatsapp.handleWhatsAppAction(
+          {
+            action: "read",
+            chatJid:
+              readStringParam(params, "chatJid") ??
+              readStringParam(params, "to", { required: true }),
+            limit: typeof params.limit === "number" ? params.limit : undefined,
+            accountId: accountId ?? undefined,
+          },
+          cfg,
+        );
+      }
       if (action !== "react") {
         throw new Error(`Action ${action} is not supported for provider ${meta.id}.`);
       }
